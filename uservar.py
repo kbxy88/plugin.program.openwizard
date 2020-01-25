@@ -7,7 +7,7 @@ import os
 #########################################################
 ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
 PATH = xbmcaddon.Addon().getAddonInfo('path')
-ART = os.path.join(PATH, 'resources', 'art')
+ART = os.path.join(PATH, 'resources', 'media')
 #########################################################
 
 #########################################################
@@ -88,8 +88,6 @@ CONTACTFANART = 'http://'
 #########################################################
 # Enable Auto Update 'Yes' or 'No'
 AUTOUPDATE = 'Yes'
-# Url to wizard version
-WIZARDFILE = BUILDFILE
 #########################################################
 
 #########################################################

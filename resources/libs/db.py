@@ -94,25 +94,53 @@ def latest_db(db):
         
         
 def force_check_updates(auto=False, over=False):
+    import time
+    
+    if not over:
+        logging.log_notify(CONFIG.ADDONTITLE,
+                           '[COLOR {0}]Force Checking for Updates[/COLOR]'.format(CONFIG.COLOR2))
+
     dbfile = latest_db('Addons')
     dbfile = os.path.join(CONFIG.DATABASE, dbfile)
     sqldb = database.connect(dbfile)
     sqlexe = sqldb.cursor()
     
-    if not over:
-        logging.log_notify(CONFIG.ADDONTITLE,
-                           '[COLOR {0}]Force Checking for Updates[/COLOR]'.format(CONFIG.COLOR2))
-    
-    installed_repos = sqlexe.execute("SELECT * FROM repo")
-    for repo in installed_repos:
-        logging.log('Force Checking for Updates: {0}'.format(repo), level=xbmc.LOGDEBUG)
-        sqlexe.execute("UPDATE repo SET version = ? WHERE addonID = ?", ('0.0.1', repo[1],))
-        sqldb.commit()
-        
-    sqlexe.close()
-    
+    # force rollback all installed repos
+    sqlexe.execute("UPDATE repo SET version = ?, checksum = ?, lastcheck = ?", ('', '', '',))
+    sqldb.commit()
+
+    # trigger kodi to check them for updates
     xbmc.executebuiltin('UpdateAddonRepos')
 
+    # wait until they have finished updating
+    with tools.busy_dialog():
+        installed_repos = sqlexe.execute('SELECT addonID FROM repo')
+
+        start_time = time.time()
+        checked_time = 0
+        for repo in installed_repos.fetchall():
+            repo = repo[0]
+            logging.log('Force checking {0}...'.format(repo), level=xbmc.LOGDEBUG)
+            while checked_time < start_time:
+                if time.time() >= start_time + 20:
+                    logging.log('{0} timed out during repo force check.'.format(repo), level=xbmc.LOGDEBUG)
+                    break
+                
+                lastcheck = sqlexe.execute('SELECT lastcheck FROM repo WHERE addonID = ?', (repo,))
+                
+                if lastcheck:
+                    checked_time = lastcheck.fetchone()[0]
+                    if checked_time:
+                        checked_time = time.mktime(time.strptime(checked_time, '%Y-%m-%d %H:%M:%S'))
+                    
+                xbmc.sleep(1000)
+            checked_time = 0
+            logging.log('{0} successfully force checked.'.format(repo), level=xbmc.LOGDEBUG)
+            logging.log_notify('[COLOR {0}]{1}[/COLOR]'.format(CONFIG.COLOR1, CONFIG.ADDONTITLE),
+                               "[COLOR {0}]{1} successfully force checked.[/COLOR]".format(CONFIG.COLOR2, repo))
+            
+    sqlexe.close()
+                    
     if auto:
         xbmc.executebuiltin('UpdateLocalAddons')
 
@@ -462,7 +490,11 @@ def find_binary_addons(addon='all'):
                 addonid = root.get('id')
                 addonname = root.get('name')
                 extension = root.find('extension')
-                ext_attrs = extension.keys()
+                
+                try:
+                    ext_attrs = extension.keys()
+                except:
+                    continue
                 
                 for attr in ext_attrs:
                     if attr.startswith('library_'):
@@ -484,11 +516,16 @@ def find_binary_addons(addon='all'):
         xml = os.path.join(CONFIG.ADDONS, addon, 'addon.xml')
         
         if os.path.exists(xml):
+            logging.log('Checking {0}'.format(xml), level=xbmc.LOGNOTICE)
             root = ElementTree.parse(xml).getroot()
             addonid = root.get('id')
             addonname = root.get('name')
             extension = root.find('extension')
-            ext_attrs = extension.keys()
+            
+            try:
+                ext_attrs = extension.keys()
+            except:
+                return None, None
             
             for attr in ext_attrs:
                 if attr.startswith('library_'):

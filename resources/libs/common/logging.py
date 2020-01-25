@@ -24,6 +24,7 @@ import xbmcvfs
 import os
 import re
 
+from resources.libs.common import tools
 from resources.libs.common.config import CONFIG
 
 try:  # Python 3
@@ -41,8 +42,6 @@ REPLACES = (('//.+?:.+?@', '//USER:PASSWORD@'), ('<user>.+?</user>', '<user>USER
 
 
 def log(msg, level=xbmc.LOGNOTICE):
-    from resources.libs.common import tools
-
     if not os.path.exists(CONFIG.PLUGIN_DATA):
         os.makedirs(CONFIG.PLUGIN_DATA)
     if not os.path.exists(CONFIG.WIZLOG):
@@ -65,21 +64,19 @@ def log(msg, level=xbmc.LOGNOTICE):
         except:
             pass
     if CONFIG.ENABLEWIZLOG == 'true':
-        lastcheck = CONFIG.NEXTCLEANDATE if not CONFIG.NEXTCLEANDATE == '' else str(tools.get_date())
-        if CONFIG.CLEANWIZLOG == 'true' and lastcheck <= str(tools.get_date()):
+        import time
+
+        lastcheck = CONFIG.NEXTCLEANDATE if not CONFIG.NEXTCLEANDATE == 0 else tools.get_date()
+        if CONFIG.CLEANWIZLOG == 'true' and time.mktime(time.strptime(lastcheck, "%Y-%m-%d %H:%M:%S")) <= tools.get_date():
             check_log()
 
-        line = "[{0} {1}] {2}".format(tools.get_date(now=True).date(),
-                                      str(tools.get_date(now=True).time())[:8],
-                                      msg)
+        line = "[{0}] {1}".format(tools.get_date(formatted=True), msg)
         line = line.rstrip('\r\n') + '\n'
         tools.write_to_file(CONFIG.WIZLOG, line, mode='a')
 
 
 def check_log():
-    from resources.libs.common import tools
-
-    next = tools.get_date(days=1)
+    next = tools.get_date(days=1, formatted=True)
     lines = tools.read_from_file(CONFIG.WIZLOG).split('\n')
 
     if CONFIG.CLEANWIZLOGBY == '0':  # By Days
@@ -103,7 +100,7 @@ def check_log():
             start = len(lines) - int(maxlines/2)
             newfile = lines[start:]
             tools.write_to_file(CONFIG.WIZLOG, '\n'.join(newfile))
-    CONFIG.set_setting('nextcleandate', str(next))
+    CONFIG.set_setting('nextwizcleandate', next)
 
 
 def log_notify(title, message, times=2000, icon=CONFIG.ADDON_ICON, sound=False):
@@ -112,24 +109,18 @@ def log_notify(title, message, times=2000, icon=CONFIG.ADDON_ICON, sound=False):
 
 
 def grab_log(file=False, old=False, wizard=False):
-    from resources.libs.common import tools
     if wizard:
-        if not os.path.exists(CONFIG.WIZLOG):
-            return False
+        if os.path.exists(CONFIG.WIZLOG):
+            return CONFIG.WIZLOG if file else tools.read_from_file(CONFIG.WIZLOG)
         else:
-            if file:
-                return CONFIG.WIZLOG
-            else:
-                return tools.read_from_file(CONFIG.WIZLOG)
-    finalfile = 0
-    logfilepath = os.listdir(CONFIG.LOGPATH)
+            return False
+                
     logsfound = []
 
-    for item in logfilepath:
-        if old and item.endswith('.old.log'):
-            logsfound.append(os.path.join(CONFIG.LOGPATH, item))
-        elif not old and item.endswith('.log') and not item.endswith('.old.log'):
-            logsfound.append(os.path.join(CONFIG.LOGPATH, item))
+    for item in [file for file in os.listdir(CONFIG.LOGPATH) if os.path.basename(file).startswith('kodi')]:
+        if item.endswith('.log'):
+            if (old and 'old' in item) or (not old and 'old' not in item):
+                logsfound.append(os.path.join(CONFIG.LOGPATH, item))
 
     if len(logsfound) > 0:
         logsfound.sort(key=lambda f: os.path.getmtime(f))
@@ -208,7 +199,6 @@ def get_files():
         else:
             show_result("No wizard log file found")
     if CONFIG.KEEPCRASHLOG:
-        from resources.libs.common import tools
         crashlog_path = ''
         items = []
         if xbmc.getCondVisibility('system.platform.osx'):
@@ -282,7 +272,6 @@ def post_log(data, name):
 
 # CURRENTLY NOT IN USE
 def copy_to_clipboard(txt):
-    from resources.libs.common import tools
     import subprocess
 
     platform = tools.platform()
@@ -455,8 +444,6 @@ def _dialog_watch():
 
 
 def error_list(file):
-    from resources.libs.common import tools
-
     errors = []
     b = tools.read_from_file(file).replace('\n', '[CR]').replace('\r', '')
 

@@ -29,9 +29,22 @@ from resources.libs.common.config import CONFIG
 from resources.libs.common import logging
 from resources.libs.common import tools
 
-ORDER = ['gaiard', 'gaiapm', 'pmzer', 'serenrd', 'serenpm', 'rurlrd', 'rurlpm', 'urlrd', 'urlpm']
+ORDER = ['gaiaad', 'gaiard', 'gaiapm', 'pmzer', 'serenad', 'serenrd', 'serenpm', 'serenpm-oauth', 'rurlad', 'rurlrd', 'rurlpm', 'urlad', 'urlrd', 'urlpm']
 
 DEBRIDID = {
+    'gaiaad': {
+        'name': 'Gaia AD',
+        'plugin': 'plugin.video.gaia',
+        'saved': 'gaiaad',
+        'path': os.path.join(CONFIG.ADDONS, 'plugin.video.gaia'),
+        'icon': os.path.join(CONFIG.ADDONS, 'plugin.video.gaia', 'icon.png'),
+        'fanart': os.path.join(CONFIG.ADDONS, 'plugin.video.gaia', 'fanart.jpg'),
+        'file': os.path.join(CONFIG.DEBRIDFOLD, 'gaia_alldebrid'),
+        'settings': os.path.join(CONFIG.ADDON_DATA, 'plugin.video.gaia', 'settings.xml'),
+        'default': 'accounts.debrid.alldebrid.user',
+        'data': ['accounts.debrid.alldebrid.enabled',
+                 'accounts.debrid.alldebrid.user', 'accounts.debrid.alldebrid.pass'],
+        'activate': 'RunPlugin(plugin://plugin.video.gaia/?action=allDebridSettings)'},
     'gaiard': {
         'name'     : 'Gaia RD',
         'plugin'   : 'plugin.video.gaia',
@@ -53,9 +66,21 @@ DEBRIDID = {
         'fanart'   : os.path.join(CONFIG.ADDONS, 'plugin.video.gaia', 'fanart.jpg'),
         'file'     : os.path.join(CONFIG.DEBRIDFOLD, 'gaia_pm'),
         'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.gaia', 'settings.xml'),
-        'default'  : 'accounts.debrid.premiumize.user',
-        'data'     : [ 'accounts.debrid.premiumize.enabled', 'accounts.debrid.premiumize.user', 'accounts.debrid.premiumize.pin'],
+        'default'  : 'accounts.debrid.premiumize.auth',
+        'data'     : [ 'accounts.debrid.premiumize.enabled', 'accounts.debrid.premiumize.token', 'accounts.debrid.premiumize.auth'],
         'activate' : 'RunPlugin(plugin://plugin.video.gaia/?action=premiumizeSettings)'},
+    'serenad': {
+        'name'     : 'Seren AD',
+        'plugin'   : 'plugin.video.seren',
+        'saved'    : 'serenad',
+        'path'     : os.path.join(CONFIG.ADDONS, 'plugin.video.seren'),
+        'icon'     : os.path.join(CONFIG.ADDONS, 'plugin.video.seren', 'temp-icon.png'),
+        'fanart'   : os.path.join(CONFIG.ADDONS, 'plugin.video.seren', 'temp-fanart.png'),
+        'file'     : os.path.join(CONFIG.DEBRIDFOLD, 'seren_ad'),
+        'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.seren', 'settings.xml'),
+        'default'  : 'alldebrid.username',
+        'data'     : ['alldebrid.enabled', 'alldebrid.username', 'alldebrid.token'],
+        'activate' : 'RunPlugin(plugin.video.seren/?action=openSettings)'},
     'serenrd': {
         'name'     : 'Seren RD',
         'plugin'   : 'plugin.video.seren',
@@ -69,7 +94,7 @@ DEBRIDID = {
         'data'     : [ 'rd.auth', 'rd.client_id', 'rd.expiry', 'rd.refresh', 'rd.secret', 'rd.username', 'realdebrid.enabled'],
         'activate' : 'RunPlugin(plugin://plugin.video.seren/?action=authRealDebrid)'},
     'serenpm': {
-        'name'     : 'Seren PM',
+        'name'     : 'Seren PM (API Key)',
         'plugin'   : 'plugin.video.seren',
         'saved'    : 'serenpm',
         'path'     : os.path.join(CONFIG.ADDONS, 'plugin.video.seren'),
@@ -79,6 +104,18 @@ DEBRIDID = {
         'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.seren', 'settings.xml'),
         'default'  : 'premiumize.pin',
         'data'     : ['premiumize.enabled', 'premiumize.pin'],
+        'activate' : 'RunPlugin(plugin.video.seren/?action=openSettings)'},
+    'serenpm-oauth': {
+        'name'     : 'Seren PM (OAuth)',
+        'plugin'   : 'plugin.video.seren',
+        'saved'    : 'serenpm-oauth',
+        'path'     : os.path.join(CONFIG.ADDONS, 'plugin.video.seren'),
+        'icon'     : os.path.join(CONFIG.ADDONS, 'plugin.video.seren', 'temp-icon.png'),
+        'fanart'   : os.path.join(CONFIG.ADDONS, 'plugin.video.seren', 'temp-fanart.png'),
+        'file'     : os.path.join(CONFIG.DEBRIDFOLD, 'seren_pmoauth'),
+        'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.seren', 'settings.xml'),
+        'default'  : 'premiumize.username',
+        'data'     : ['premiumize.enabled', 'premiumize.username', 'premiumize.token'],
         'activate' : 'RunPlugin(plugin.video.seren/?action=openSettings)'},
     'urlrd': {
         'name'     : 'URLResolver RD',
@@ -92,6 +129,19 @@ DEBRIDID = {
         'default'  : 'RealDebridResolver_client_id',
         'data'     : ['RealDebridResolver_autopick', 'RealDebridResolver_client_id', 'RealDebridResolver_client_secret', 'RealDebridResolver_enabled', 'RealDebridResolver_login', 'RealDebridResolver_priority', 'RealDebridResolver_refresh', 'RealDebridResolver_token', 'RealDebridResolver_torrents'],
         'activate' : 'RunPlugin(plugin://script.module.urlresolver/?mode=auth_rd)'},
+    'urlad': {
+        'name': 'URLResolver AD',
+        'plugin': 'script.module.urlresolver',
+        'saved': 'urlad',
+        'path': os.path.join(CONFIG.ADDONS, 'script.module.urlresolver'),
+        'icon': os.path.join(CONFIG.ADDONS, 'script.module.urlresolver', 'icon.png'),
+        'fanart': os.path.join(CONFIG.ADDONS, 'script.module.urlresolver', 'fanart.jpg'),
+        'file': os.path.join(CONFIG.DEBRIDFOLD, 'url_alldebrid'),
+        'settings': os.path.join(CONFIG.ADDON_DATA, 'script.module.urlresolver', 'settings.xml'),
+        'default': 'AllDebridResolver_client_id',
+        'data': ['AllDebridResolver_enabled', 'AllDebridResolver_login', 'AllDebridResolver_priority',
+                 'AllDebridResolver_token', 'AllDebridResolver_torrents', 'AllDebridResolver_cached_only'],
+        'activate': 'RunPlugin(plugin://script.module.urlresolver/?mode=auth_ad)'},
     'rurlrd': {
         'name'     : 'ResolveURL RD',
         'plugin'   : 'script.module.resolveurl',
@@ -104,6 +154,19 @@ DEBRIDID = {
         'default'  : 'RealDebridResolver_client_id',
         'data'     : ['RealDebridResolver_autopick', 'RealDebridResolver_client_id', 'RealDebridResolver_client_secret', 'RealDebridResolver_enabled', 'RealDebridResolver_login', 'RealDebridResolver_priority', 'RealDebridResolver_refresh', 'RealDebridResolver_token', 'RealDebridResolver_torrents', 'RealDebridResolver_cached_only'],
         'activate' : 'RunPlugin(plugin://script.module.resolveurl/?mode=auth_rd)'},
+    'rurlad': {
+        'name': 'ResolveURL AD',
+        'plugin': 'script.module.resolveurl',
+        'saved': 'rurlad',
+        'path': os.path.join(CONFIG.ADDONS, 'script.module.resolveurl'),
+        'icon': os.path.join(CONFIG.ADDONS, 'script.module.resolveurl', 'icon.png'),
+        'fanart': os.path.join(CONFIG.ADDONS, 'script.module.resolveurl', 'fanart.jpg'),
+        'file': os.path.join(CONFIG.DEBRIDFOLD, 'resurl_alldebrid'),
+        'settings': os.path.join(CONFIG.ADDON_DATA, 'script.module.resolveurl', 'settings.xml'),
+        'default': 'AllDebridResolver_client_id',
+        'data': ['AllDebridResolver_enabled', 'AllDebridResolver_login', 'AllDebridResolver_priority',
+                 'AllDebridResolver_token', 'AllDebridResolver_torrents', 'AllDebridResolver_cached_only'],
+        'activate': 'RunPlugin(plugin://script.module.resolveurl/?mode=auth_ad)'},
     'urlpm': {
         'name'     : 'URLResolver PM',
         'plugin'   : 'script.module.urlresolver',
@@ -186,7 +249,7 @@ def debrid_it(do, who):
                     pass
             else:
                 logging.log('[Debrid Info] {0}({1}) is not installed'.format(DEBRIDID[log]['name'], DEBRIDID[log]['plugin']), level=xbmc.LOGERROR)
-        CONFIG.set_setting('debridlastsave', tools.get_date(days=3))
+        CONFIG.set_setting('debridnextsave', tools.get_date(days=3, formatted=True))
     else:
         if DEBRIDID[who]:
             if os.path.exists(DEBRIDID[who]['path']):
@@ -253,7 +316,7 @@ def update_debrid(do, who):
             root = tree.getroot()
             
             try:
-                for setting in root.iter('debrid'):
+                for setting in root.findall('debrid'):
                     id = setting.find('id').text
                     value = setting.find('value').text
                     addonid.setSetting(id, value)
@@ -272,7 +335,7 @@ def update_debrid(do, who):
                 tree = ElementTree.parse(settings)
                 root = tree.getroot()
                 
-                for setting in root.iter('setting'):
+                for setting in root.findall('setting'):
                     if setting.attrib['id'] in data:
                         logging.log('Removing Setting: {0}'.format(setting.attrib))
                         root.remove(setting)
@@ -333,7 +396,7 @@ def import_list(who):
             tree = ElementTree.parse(file)
             root = tree.getroot()
             
-            for setting in root.iter('debrid'):
+            for setting in root.findall('debrid'):
                 id = setting.find('id').text
                 value = setting.find('value').text
             

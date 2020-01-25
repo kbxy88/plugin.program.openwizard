@@ -175,7 +175,19 @@ TRAKTID = {
         'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.realizer', 'settings.xml'),
         'default'  : 'trakt.user',
         'data'     : ['trakt.token', 'trakt.refresh', 'trakt.user'],
-        'activate' : 'RunPlugin(plugin://plugin.video.realizer/?action=authTrakt)'}
+        'activate' : 'RunPlugin(plugin://plugin.video.realizer/?action=authTrakt)'},
+    'tmdbhelper': {
+        'name'     : 'TheMovieDb Helper',
+        'plugin'   : 'plugin.video.themoviedb.helper',
+        'saved'    : 'tmdbhelper',
+        'path'     : os.path.join(CONFIG.ADDONS, 'plugin.video.themoviedb.helper'),
+        'icon'     : os.path.join(CONFIG.ADDONS, 'plugin.video.themoviedb.helper', 'icon.png'),
+        'fanart'   : os.path.join(CONFIG.ADDONS, 'plugin.video.themoviedb.helper', 'fanart.jpg'),
+        'file'     : os.path.join(CONFIG.TRAKTFOLD, 'tmdbhelper_trakt'),
+        'settings' : os.path.join(CONFIG.ADDON_DATA, 'plugin.video.themoviedb.helper', 'settings.xml'),
+        'default'  : 'trakt.management',
+        'data'     : ['trakt.token', 'trakt.management'],
+        'activate' : 'RunScript(plugin.video.themoviedb.helper, authenticate_trakt)'}
 }
 
 
@@ -209,7 +221,7 @@ def trakt_it(do, who):
                     pass
             else:
                 logging.log('[Trakt Data] {0}({1}) is not installed'.format(TRAKTID[log]['name'], TRAKTID[log]['plugin']), level=xbmc.LOGERROR)
-        CONFIG.set_setting('traktlastsave', tools.get_date(days=3))
+        CONFIG.set_setting('traktnextsave', tools.get_date(days=3, formatted=True))
     else:
         if TRAKTID[who]:
             if os.path.exists(TRAKTID[who]['path']):
@@ -253,10 +265,10 @@ def update_trakt(do, who):
                 root = ElementTree.Element(saved)
                 
                 for setting in data:
-                    debrid = ElementTree.SubElement(root, 'debrid')
-                    id = ElementTree.SubElement(debrid, 'id')
+                    trakt = ElementTree.SubElement(root, 'trakt')
+                    id = ElementTree.SubElement(trakt, 'id')
                     id.text = setting
-                    value = ElementTree.SubElement(debrid, 'value')
+                    value = ElementTree.SubElement(trakt, 'value')
                     value.text = addonid.getSetting(setting)
                   
                 tree = ElementTree.ElementTree(root)
@@ -275,7 +287,7 @@ def update_trakt(do, who):
             root = tree.getroot()
             
             try:
-                for setting in root.iter('debrid'):
+                for setting in root.findall('trakt'):
                     id = setting.find('id').text
                     value = setting.find('value').text
                     addonid.setSetting(id, value)
@@ -294,7 +306,7 @@ def update_trakt(do, who):
                 tree = ElementTree.parse(settings)
                 root = tree.getroot()
                 
-                for setting in root.iter('setting'):
+                for setting in root.findall('setting'):
                     if setting.attrib['id'] in data:
                         logging.log('Removing Setting: {0}'.format(setting.attrib))
                         root.remove(setting)
@@ -355,7 +367,7 @@ def import_list(who):
             tree = ElementTree.parse(file)
             root = tree.getroot()
             
-            for setting in root.iter('trakt'):
+            for setting in root.findall('trakt'):
                 id = setting.find('id').text
                 value = setting.find('value').text
             
